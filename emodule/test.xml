@@ -1,0 +1,23 @@
+<CONSTRAINTS> 5 5 3 <CONSTRAINTS>
+<BLOCK>
+<block_A> {{0 0} {0 100} {100 100} {100 0}} <block_A>
+<block_B> {{0 0} {0 50} {200 50} {200 0}} <block_B>
+<block_C> {{0 0} {0 25} {120 25} {120 0}} <block_C>
+<BLOCK>
+<INSTANCE>
+<A_1> block_A {10 10} R0 <A_1>
+<A_2> block_A {210 10} MY <A_2>
+<B> block_B {10 110} R0 <B>
+<B/C> block_C {80 125} R0 <B/C>
+<INSTANCE>
+<NODE>
+<A_1/N1> {60 60} <A_1/N1>
+<A_2/N1> {160 60} <A_2/N1>
+<B/N1> {60 135} <B/N1>
+<B/C/N1> {180 135} <B/C/N1>
+<NODE>
+<FLY_LINE>
+<A_1/N1 B/N1>
+<A_1/N1 B/C/N1>
+<A_2/N1 B/C/N1>
+<FLY_LINE>
