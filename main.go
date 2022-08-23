@@ -3,10 +3,20 @@ package main
 import (
 	"Solution/emodule"
 	"fmt"
+	"os"
 )
 
 func main() {
-	constraint := emodule.NewConstraint("20 50 40")
-	fmt.Println(constraint)
+	file, _ := os.Open("./test.xml")
+	tree := emodule.ReadXML(file)
+	for _, v := range tree.Root.Children {
+		if v.Tag == "BLOCK" {
+			for _, block := range v.Children {
+				b := emodule.NewBlock(block.Tag, block.Content)
+				fmt.Println(b)
+			}
+		}
+
+	}
 	return
 }

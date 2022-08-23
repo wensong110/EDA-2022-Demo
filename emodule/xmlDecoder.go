@@ -41,7 +41,7 @@ type Node struct {
 }
 
 type XMLTree struct {
-	root *Node
+	Root *Node
 }
 
 func (p *Node) addToFather(fa *Node) {
@@ -103,27 +103,27 @@ func ReadXML(reader io.Reader) XMLTree {
 		}
 	}
 	return XMLTree{
-		root: &root,
+		Root: &root,
 	}
 }
 
-func Prfloat64XML() {
+func PrintXML() {
 	file, err := os.Open("./emodule/test.xml")
 	if err != nil {
 		fmt.Println(err)
 	}
 	xml := ReadXML(file)
-	node := xml.root
-	prfloat64Node(node, 0)
+	node := xml.Root
+	PrintNode(node, 0)
 }
-func prfloat64Node(p *Node, cnt int) {
+func PrintNode(p *Node, cnt int) {
 	for i := 0; i < cnt; i++ {
 		fmt.Print("    ")
 	}
 	fmt.Println(p.Tag + ":" + p.Content)
 	fmt.Println("-------------------")
 	for _, v := range p.Children {
-		prfloat64Node(v, cnt+1)
+		PrintNode(v, cnt+1)
 	}
 }
 
@@ -139,13 +139,22 @@ func NewConstrafloat64(str string) *Constrafloat64 {
 	return &ans
 }
 
+var BlockSet map[string]*Block
+var InstanceSet map[string]*Instance
+
+func init() {
+	BlockSet = make(map[string]*Block)
+	InstanceSet = make(map[string]*Instance)
+}
+
 type Block struct {
-	rect     []Rect
+	Name     string
 	PointSet []Point
 }
 
-func NewBlock(str string) *Block {
+func NewBlock(name string, str string) *Block {
 	ans := Block{}
+	ans.Name = name
 	builder := strings.Builder{}
 	for _, v := range str {
 		if v != '{' && v != '}' {
@@ -154,20 +163,115 @@ func NewBlock(str string) *Block {
 	}
 	str = builder.String()
 	numbers := make([]float64, 0)
-	num := 0.0
 	str = strings.TrimSpace(str)
+	str = str + " "
+	prefix := 0
+	suffix := 0
+	flag := false
 	for _, v := range str {
 		if v >= '0' && v <= '9' {
 			tmp := v - '0'
-			num = num * 10
-			num += float64(tmp)
+			if !flag {
+				prefix = prefix * 10
+				prefix += int(tmp)
+			} else {
+				suffix = suffix * 10
+				suffix += int(tmp)
+			}
+		} else if v == '.' {
+			flag = true
 		} else {
-			numbers = append(numbers, num)
-			num = 0
+			numbers = append(numbers, TwoInteger2Float(prefix, suffix))
+			prefix = 0
+			suffix = 0
+			flag = false
 		}
 	}
-	for i := 0; i < len(numbers); i += 2 {
+	for i := 0; i+1 < len(numbers); i += 2 {
 		ans.PointSet = append(ans.PointSet, NewPoint(numbers[i], numbers[i+1]))
 	}
+	BlockSet[ans.Name] = &ans
 	return &ans
+}
+
+func (p *Block) Rotate(how string) *Block {
+	//TODO
+	return nil
+}
+
+type Instance struct {
+	Name          string
+	InstanceChain []*Instance
+	Parts         []*Instance
+	Block         *Block
+	Offset        Point
+	Rotate        string
+	RotatedBlock  *Block
+}
+
+func string2float64(s string) float64 {
+	prefix := 0
+	suffix := 0
+	flag := false
+	for _, v := range s {
+		if v >= '0' && v <= '9' {
+			if !flag {
+				prefix *= 10
+				prefix += int(v - '0')
+			} else {
+				suffix *= 10
+				suffix += int(v - '0')
+			}
+		}
+		if v == '.' {
+			flag = true
+		}
+	}
+	return TwoInteger2Float(prefix, suffix)
+}
+
+func NewInstance(name string, str string) (*Instance, error) {
+	ans := Instance{}
+	ans.Name = name
+	str = strings.TrimSpace(str)
+	strs := strings.Split(str, " ")
+	if len(strs) < 3 {
+		return nil, fmt.Errorf("wrong instance format")
+	}
+	blockName := strs[0]
+	_, hasBlock := BlockSet[blockName]
+	if !hasBlock {
+		return nil, fmt.Errorf("don't has block %s", blockName)
+	}
+	ans.Block = BlockSet[blockName]
+	offsetPointStr := strs[1]
+	builder := strings.Builder{}
+	for _, v := range offsetPointStr {
+		if v != '{' && v != '}' {
+			builder.WriteRune(v)
+		}
+	}
+	offsetPointStr = builder.String()
+	offsetPointStr = strings.TrimSpace(offsetPointStr)
+	points := strings.Split(offsetPointStr, " ")
+	if len(points) < 2 {
+		return nil, fmt.Errorf("wrong instance format")
+	}
+	ans.Offset = NewPoint(string2float64(points[0]), string2float64(points[0]))
+	ans.Rotate = strs[2]
+	//struct consturct
+	layerNames := strings.Split(ans.Name, "/")
+	builder.Reset()
+	for i, v := range layerNames {
+		if i != 0 {
+			builder.WriteRune('/')
+		}
+		builder.WriteString(v)
+		_, hasInstance := BlockSet[builder.String()]
+		if hasInstance {
+			ans.InstanceChain = append(ans.InstanceChain, InstanceSet[builder.String()])
+		}
+	}
+
+	return &ans, nil
 }

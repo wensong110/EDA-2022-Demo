@@ -1,5 +1,10 @@
 package emodule
 
+import (
+	"Solution/evisiable"
+	"image/color"
+)
+
 type Point struct {
 	X float64
 	Y float64
@@ -16,10 +21,20 @@ type LineFragment struct {
 	End       Point
 }
 
+func (p *LineFragment) Draw(ctx *evisiable.Canvas) {
+	ctx.DrawLine(int(p.Start.X), int(p.Start.Y), int(p.End.X), int(p.End.Y), color.Black)
+}
+
 type Line struct {
 	Id        int
 	Width     float64
 	Frangment []*LineFragment
+}
+
+func (p *Line) Draw(ctx *evisiable.Canvas) {
+	for _, v := range p.Frangment {
+		v.Draw(ctx)
+	}
 }
 
 type Rect struct {
