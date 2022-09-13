@@ -17,6 +17,18 @@ type Canvas struct {
 	Width    int
 	Img      *image.NRGBA
 	DrawItem []*Drawable
+	OffsetX  int
+	OffsetY  int
+}
+
+func (p *Canvas) SetOffset(x, y int) {
+	p.OffsetX = x
+	p.OffsetY = y
+}
+
+func (p *Canvas) AddOffset(x, y int) {
+	p.OffsetX += x
+	p.OffsetY += y
 }
 
 func NewCanvas(height, width int) *Canvas {
@@ -41,18 +53,24 @@ func abs(x int) int {
 }
 
 func (p *Canvas) DrawPoint(x, y int, weight ...int) {
+	x += p.OffsetX
+	y += p.OffsetY
 	w := 4
 	if len(weight) != 0 {
 		w = weight[0]
 	}
 	for i := 0; i < w; i++ {
 		for j := 0; j < 4; j++ {
-			p.Img.Set(i, j, color.Black)
+			p.Img.Set(x+i, y+j, color.Black)
 		}
 	}
 }
 
 func (p *Canvas) DrawLine(x0, y0, x1, y1 int, color color.Color) {
+	x0 += p.OffsetX
+	y0 += p.OffsetY
+	x1 += p.OffsetX
+	y1 += p.OffsetY
 	dx := abs(x1 - x0)
 
 	dy := abs(y1 - y0)
@@ -105,12 +123,18 @@ func (p *Canvas) DrawLine(x0, y0, x1, y1 int, color color.Color) {
 }
 
 func (p *Canvas) ColorifyZone(x, y int, targetColor color.Color) {
+	x += p.OffsetX
+	y += p.OffsetY
 	type Pix struct {
 		X int
 		Y int
 	}
 	var dx [4]int = [4]int{1, -1, 0, 0}
 	var dy [4]int = [4]int{0, 0, 1, -1}
+	book := make([][]bool, 0)
+	for i := 0; i < p.Height; i++ {
+		book = append(book, make([]bool, p.Width))
+	}
 	pixs := make([]Pix, 0)
 	initColor := p.Img.At(x, y)
 	pixs = append(pixs, Pix{x, y})
@@ -119,6 +143,10 @@ func (p *Canvas) ColorifyZone(x, y int, targetColor color.Color) {
 		now := pixs[0]
 		pixs = pixs[1:]
 		//fmt.Println(now)
+		if book[now.X][now.Y] {
+			continue
+		}
+		book[now.X][now.Y] = true
 		for i := 0; i < 4; i++ {
 			nxt := now
 			nxt.X += dx[i]
