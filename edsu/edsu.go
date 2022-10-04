@@ -31,7 +31,20 @@ func (p *DSU) FindLeader(item Any) (Any, error) {
 	if p.Mp[item] == item {
 		return item, nil
 	}
-	ret1, ret2 := p.FindLeader(p)
+	ret1, ret2 := p.FindLeader(p.Mp[item])
 	p.Mp[item] = ret1
 	return ret1, ret2
+}
+
+func (p *DSU) Merge(item1, item2 Any) error {
+	f1, err := p.FindLeader(item1)
+	if err != nil {
+		return err
+	}
+	f2, err := p.FindLeader(item2)
+	if err != nil {
+		return err
+	}
+	p.Mp[f1] = f2
+	return nil
 }

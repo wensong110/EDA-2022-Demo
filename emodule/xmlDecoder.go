@@ -144,11 +144,13 @@ func NewConstrafloat64(str string) *Constrafloat64 {
 var BlockSet map[string]*Block
 var InstanceSet map[string]*Instance
 var NodeSet map[string]*NodeOfBlock
+var FlyLineSet map[string]*FlyLine
 
 func init() {
 	BlockSet = make(map[string]*Block)
 	InstanceSet = make(map[string]*Instance)
 	NodeSet = make(map[string]*NodeOfBlock)
+	FlyLineSet = make(map[string]*FlyLine)
 }
 
 type Block struct {
@@ -489,5 +491,14 @@ func NewFlyLine(name string) (*FlyLine, error) {
 	}
 	ans.NodeARef = NodeSet[ans.NodeAName]
 	ans.NodeBRef = NodeSet[ans.NodeBName]
+	FlyLineSet[name] = &ans
 	return &ans, nil
+}
+
+func (p *NodeOfBlock) Draw(ctx evisiable.Canvas) {
+	ctx.DrawPoint(int(p.Pos.X), int(p.Pos.Y), 5)
+}
+
+func (p *FlyLine) Draw(ctx evisiable.Canvas) {
+	ctx.DrawLine(int(p.NodeARef.Pos.X), int(p.NodeARef.Pos.Y), int(p.NodeBRef.Pos.X), int(p.NodeBRef.Pos.Y), color.RGBA{20, 200, 20, 255})
 }
